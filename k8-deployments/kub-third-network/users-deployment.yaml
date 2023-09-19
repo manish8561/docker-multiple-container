@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: manish198646/first-app:6
+          imagePullPolicy: Always
+          env:
+            - name: MONGODB_HOST
+              value: "172.16.15.7"
+            - name: PORT
+              value: "8000"
+          # resources:
+          #   limits:
+          #     memory: "128Mi"
+          #     cpu: "500m"

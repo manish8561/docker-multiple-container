@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks
+  template:
+    metadata:
+      labels:
+        app: tasks
+    spec:
+      containers:
+        - name: tasks
+          image: manish198646/task-repo:2
+          imagePullPolicy: Always
+          env:
+            - name: PORT
+              value: "3001"
+            - name: USER_URL
+              value: "http://users-service:8000/favorites"
+          # resources:
+          #   limits:
+          #     memory: "128Mi"
+          #     cpu: "500m"

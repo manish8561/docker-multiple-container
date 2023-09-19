@@ -1,0 +1,96 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-deployment
+  labels:
+    app: mongo
+spec:
+  ports:
+    - port: 27017
+  selector:
+    app: mongo
+    # tier: mysql
+  clusterIP: None
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  labels:
+    group: example
+spec:
+  selector:
+    app: second-app
+  ports:
+    - protocol: 'TCP'
+      port: 80
+      targetPort: 8000
+  type: LoadBalancer
+---
+# running mongo container
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-deployment
+  labels:
+    group: example
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      labels:
+        app: mongo
+    spec:
+      containers:
+        - name: mongodb
+          image: mongo
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: 'max'
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: 'secret'
+          ports:
+            - containerPort: 27017
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: second-app-depolyment
+  labels:
+    group: example
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: second-app
+      tier: backend
+    # matchExpressions:
+    # - { key: app, operator: In, values: [second-app, first-app] }
+  template:
+    metadata:
+      labels:
+        app: second-app
+        tier: backend
+    spec:
+      containers:
+        - name: second-node
+          image: manish198646/first-app:3
+          imagePullPolicy: Always
+          env:
+            - name: MONGODB_HOST
+              value: mongo-deployment
+            - name: MONGODB_USERNAME
+              value: 'max'
+            - name: MONGODB_PASSWORD
+              value: 'secret'
+          livenessProbe:
+            httpGet:
+              path: /swagger
+              port: 8000
+            periodSeconds: 10
+            initialDelaySeconds: 5
+        # - name: ...
+        # image: ...
